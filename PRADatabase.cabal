@@ -1,0 +1,49 @@
+name:               PRADatabase
+version:            1.0.0
+cabal-version:      >= 1.8
+build-type:         Simple
+
+executable          PRADatabase
+  main-is:          Main.hs
+  other-Modules:    PRA.Logic
+                  , PRA.Utils
+                  , PRA.App
+                  , PRA.Page
+                  , PRA.Page.Theme
+                  , PRA.Page.Home
+                  , PRA.Page.Auth
+                  , PRA.Page.Club
+                  , PRA.Page.CResult
+                  , PRA.Page.Add
+                  , PRA.Page.Search
+                  , PRA.Page.Award
+                  , PRA.Page.Student
+  extensions:       EmptyDataDecls
+                  , FlexibleContexts
+                  , FunctionalDependencies
+                  , GeneralizedNewtypeDeriving
+                  , MultiParamTypeClasses
+                  , OverloadedStrings
+                  , DeriveGeneric
+                  , QuasiQuotes
+                  , RecordWildCards
+                  , TemplateHaskell
+                  , TypeFamilies
+                  , ViewPatterns
+                  , GADTs
+  build-depends:    base
+                  , transformers
+                  , resourcet
+                  , monad-logger
+                  , bytestring
+                  , containers
+                  , blaze-markup
+                  , yesod
+                  , yesod-static
+                  , persistent
+                  , persistent-template
+                  , persistent-sqlite
+                  , text
+                  , time
+
+  ghc-options:    -fwarn-tabs -threaded -O2 -rtsopts -with-rtsopts=-N
