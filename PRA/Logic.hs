@@ -11,9 +11,6 @@ splitOnAny divLst lst = case break (`elem` divLst) lst of
     (b,[]) -> [b]
     (b,a)  -> splitOnAny divLst b ++ splitOnAny divLst (drop 1 a)
 
-caesarShift sft = map ((drop (sft `mod` length ascii) (cycle ascii) !!) . subtract 32 . ord)
-  where ascii = [' '..'~']
-
 seniorSort :: [Student] -> [Student]
 seniorSort = sortBy sortByGrade . reverse . nub . reverse
  where sortByGrade sdnt1 sdnt2

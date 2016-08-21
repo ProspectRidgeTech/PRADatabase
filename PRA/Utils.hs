@@ -5,6 +5,7 @@ module PRA.Utils
     , Student(..)
     , ClubMap
     , Result
+    , collapse
     , clubsToMap
     , concatName
     , searchStudents
@@ -15,7 +16,6 @@ module PRA.Utils
     , grades
     , fromEntities
     , toStudent
-    , CSubmission(..)
     , opLst
     , getAward
     , monthPairs
@@ -44,6 +44,9 @@ import qualified Data.Text as T
 import PRA.App
 
 --Funtions
+collapse :: Applicative a => [a x] -> a [x]
+collapse = foldr (\c acc -> pure (:) <*> c <*> acc) (pure [])
+
 concatName :: Name -> Text
 concatName (fn, ln) = fn `append` " " `append` ln
 

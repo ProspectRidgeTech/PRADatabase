@@ -15,8 +15,7 @@ mkYesodDispatch "PRA" [parseRoutes|
 /search SearchR GET POST
 /award AwardR GET
 /award/show ShowAR GET POST
-/award/add AwardSR GET POST
-/award/add/#Text AAwardR GET POST
+/award/add AAwardR GET POST
 /praClubs ClubR GET POST
 /praClubs/results CResultR GET
 /src R Static src
@@ -108,9 +107,8 @@ postSearchR = do
     ((result, widget), enctype) <- runFormPost dbSearchForm
     case result of
         FormSuccess (FSearch query) -> do
-            defaultLayout $ do
-                praTheme
-                dbSearchSubmitSuccess (searchStudents query sdnts)
+            setSession "search" (pack . show $ searchStudents query sdnts)
+            redirectUltDest HomeR
 
 getShowAR :: Handler Html
 getShowAR = do
@@ -137,48 +135,43 @@ postShowAR = do
                 praTheme
                 showAwardsSubmitSuccess peaks sdnts (year,month)
 
-getAwardSR :: Handler Html
-getAwardSR = do
-    f <- generateFormPost dbSearchForm
-    protectedPage $ defaultLayout $ do
-        praTheme
-        awardSFormWidget f
-
-postAwardSR :: Handler Html
-postAwardSR = do
-    ((result, widget), enctype) <- runFormPost dbSearchForm
-    case result of
-        FormSuccess (FSearch query) -> do
-            defaultLayout $ do
-                praTheme
-                redirect (AAwardR query)
-
-getAAwardR :: Text -> Handler Html
-getAAwardR query = do
+getAAwardR :: Handler Html
+getAAwardR = do
     now <- liftIO getCurrentTime
     timezone <- liftIO getCurrentTimeZone
     let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
-    sdnts <- (searchStudents query . fromEntities) <$> (runDB $ selectList [] [])
-    awards <- fromEntities <$> (runDB $ selectList [] [])
-    f <- generateFormPost $ awardForm awards sdnts (y, m)
-    protectedPage $ defaultLayout $ do
-        praTheme
-        awardFormWidget f query
+    search <- lookupSession "search"
+    case search of
+      Nothing -> do
+        setUltDestCurrent
+        redirect SearchR
+      Just sdnts -> do
+        awards <- fromEntities <$> (runDB $ selectList [] [])
+        f <- generateFormPost $ awardForm awards (read $ unpack sdnts) (y, m)
+        protectedPage $ defaultLayout $ do
+          praTheme
+          awardFormWidget f
 
-postAAwardR :: Text -> Handler Html
-postAAwardR query = do
+postAAwardR :: Handler Html
+postAAwardR = do
     now <- liftIO getCurrentTime
     timezone <- liftIO getCurrentTimeZone
     let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
-    sdnts <- (searchStudents query . fromEntities) <$> (runDB $ selectList [] [])
-    awards <- fromEntities <$> (runDB $ selectList [] [])
-    --Does runFormPost really need all of the form parameters again?
-    ((result, widget), enctype) <- runFormPost $ awardForm awards sdnts (y, m)
-    case result of
-        FormSuccess (FAward title sdnt blurb month year) -> do
-            let newStudentAwards = (Award title blurb (year,month)) : (studentAwards sdnt)
-            runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentAwards =. newStudentAwards]
-            defaultLayout $ do
+    search <- lookupSession "search"
+    deleteSession "search"
+    case search of
+      Nothing -> do
+        setUltDestCurrent
+        redirect SearchR
+      Just sdnts -> do
+        awards <- fromEntities <$> (runDB $ selectList [] [])
+        --Does runFormPost really need all of the form parameters again?
+        ((result, widget), enctype) <- runFormPost $ awardForm awards (read $ unpack sdnts) (y, m)
+        case result of
+          FormSuccess (FAward title sdnt blurb month year) -> do
+              let newStudentAwards = (Award title blurb (year,month)) : (studentAwards sdnt)
+              runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentAwards =. newStudentAwards]
+              defaultLayout $ do
                 praTheme
                 awardSubmitSuccess title (concatName $ studentName sdnt)
 

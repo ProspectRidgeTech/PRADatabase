@@ -6,6 +6,7 @@ import Yesod
 dbSearchForm :: Html -> MForm Handler (FormResult FSearch, Widget)
 dbSearchForm = renderDivs $ FSearch <$> areq textField "Search for a student: " Nothing
 
+{-
 dbSearchSubmitSuccess :: [Student] -> WidgetT PRA IO ()
 dbSearchSubmitSuccess res = do
     [whamlet|
@@ -15,6 +16,7 @@ dbSearchSubmitSuccess res = do
               <a href=@{StudentR num}>
                   <p>#{concatName name}, #{grade}th
     |]
+-}
 
 dbSearchFormWidget :: (ToWidget PRA w,ToMarkup e) => (w, e) -> WidgetT PRA IO ()
 dbSearchFormWidget (widget, enctype) = do

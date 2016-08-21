@@ -6,6 +6,9 @@ import Data.Text (Text)
 import Yesod.Static
 import Yesod
 
+--Add a search page that returns a session message that is a list of students.
+--Add club choosing page that uses session message to display relevent students in a combobox. If results are empty, set a message and redirect to the search page.
+
 --Main Application Type
 data PRA = PRA {src :: Static, connPool :: ConnectionPool}
 
@@ -21,8 +24,7 @@ mkYesodData "PRA" [parseRoutes|
 /search SearchR GET POST
 /award AwardR GET
 /award/show ShowAR GET POST
-/award/add AwardSR GET POST
-/award/add/#Text AAwardR GET POST
+/award/add AAwardR GET POST
 /praClubs ClubR GET POST
 /praClubs/results CResultR GET
 /src R Static src
@@ -79,11 +81,10 @@ Student
 
 type Result = ([(Text,[Student])], [Student])
 
-data CSubmission = CSubmission {operation :: Bool, msg :: Text, key :: Int}
-
 --Deprecated--------------------------------------------------------------------------------------
 data ClubFStudent = ClubFStudent { sN  :: Text, sG  :: Int, sC1 :: Text, sC2 :: Text, sC3 :: Text}
 --------------------------------------------------------------------------------------------------
+--data ClubFStudent = ClubFStudent {student  :: Student, choices :: [Club]}
 
 data FStudent = FStudent Text Text Int Int Peak
 

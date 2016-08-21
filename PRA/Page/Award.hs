@@ -8,7 +8,7 @@ awardHomePage :: WidgetT PRA IO()
 awardHomePage = [whamlet|
             <div .results>
                 <h1> Prospect Ridge Academy Student Database
-                <a href=@{AwardSR}>
+                <a href=@{AAwardR}>
                     <h4> Award an Award
                 <a href=@{ShowAR}>
                     <h4> See Monthly Awards
@@ -66,25 +66,12 @@ awardSubmitSuccess title sdnt = do
           <p> #{sdnt} has recieved the #{title} character award.
     |]
 
---Yes, these funtions are repetitive. Parameterize the "action" URL?
-
-awardFormWidget :: (ToWidget PRA w,ToMarkup e) => (w, e) -> Text -> WidgetT PRA IO ()
-awardFormWidget (widget, enctype) query = do
+awardFormWidget :: (ToWidget PRA w,ToMarkup e) => (w, e) -> WidgetT PRA IO ()
+awardFormWidget (widget, enctype) = do
     [whamlet|
       <div .formbox>
           <h1> Prospect Ridge Academy Student Database
-          <form method=post action=@{AAwardR query} enctype=#{enctype}>
+          <form method=post action=@{AwardR} enctype=#{enctype}>
               ^{widget}
               <button>Submit
-    |]
-
-awardSFormWidget :: (ToWidget PRA w,ToMarkup e) => (w, e) -> WidgetT PRA IO ()
-awardSFormWidget (widget, enctype) = do
-    [whamlet|
-      <div .formbox>
-          <h1> Prospect Ridge Academy Student Database
-          <p> Enter the name of, or part of the name of, the student you would like to nominate.
-          <form method=post action=@{AwardSR} enctype=#{enctype}>
-              ^{widget}
-              <button>Search
     |]
