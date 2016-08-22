@@ -71,7 +71,7 @@ awardFormWidget (widget, enctype) = do
     [whamlet|
       <div .formbox>
           <h1> Prospect Ridge Academy Student Database
-          <form method=post action=@{AwardR} enctype=#{enctype}>
+          <form method=post action=@{AAwardR} enctype=#{enctype}>
               ^{widget}
               <button>Submit
     |]

@@ -5,6 +5,9 @@ module PRA.Utils
     , Student(..)
     , ClubMap
     , Result
+    , setExpiry
+    , unsetExpiry
+    , expireToken
     , collapse
     , clubsToMap
     , concatName
@@ -42,8 +45,24 @@ import Control.Monad.Logger as Export (runStderrLoggingT)
 
 import qualified Data.Text as T
 import PRA.App
+import Yesod
 
 --Funtions
+setExpiry :: Handler ()
+setExpiry = setSession "expiry" ""
+unsetExpiry :: Handler ()
+unsetExpiry = deleteSession "expiry"
+
+expireToken :: MonadHandler m => Text -> m b -> m b -> m b
+expireToken token callback passthrough = do
+  expiryFlag <- lookupSession "expiry"
+  case expiryFlag of
+    Nothing -> passthrough
+    Just _ -> do
+      deleteSession token
+      deleteSession "expiry"
+      callback
+
 collapse :: Applicative a => [a x] -> a [x]
 collapse = foldr (\c acc -> pure (:) <*> c <*> acc) (pure [])
 

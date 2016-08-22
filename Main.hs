@@ -40,7 +40,7 @@ postAuthR = do
     ((result, widget), enctype) <- runFormPost $ authPageForm admin
     case result of
         FormSuccess pass -> do
-            setSession "admin" "T"
+            setSession "admin" ""
             redirectUltDest HomeR
         FormFailure (err:_) -> do
             setMessage $ toHtml err
@@ -136,7 +136,7 @@ postShowAR = do
                 showAwardsSubmitSuccess peaks sdnts (year,month)
 
 getAAwardR :: Handler Html
-getAAwardR = do
+getAAwardR = expireToken "search" getAAwardR $ do
     now <- liftIO getCurrentTime
     timezone <- liftIO getCurrentTimeZone
     let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
@@ -146,34 +146,24 @@ getAAwardR = do
         setUltDestCurrent
         redirect SearchR
       Just sdnts -> do
+        setExpiry
         awards <- fromEntities <$> (runDB $ selectList [] [])
-        f <- generateFormPost $ awardForm awards (read $ unpack sdnts) (y, m)
-        protectedPage $ defaultLayout $ do
-          praTheme
-          awardFormWidget f
-
-postAAwardR :: Handler Html
-postAAwardR = do
-    now <- liftIO getCurrentTime
-    timezone <- liftIO getCurrentTimeZone
-    let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
-    search <- lookupSession "search"
-    deleteSession "search"
-    case search of
-      Nothing -> do
-        setUltDestCurrent
-        redirect SearchR
-      Just sdnts -> do
-        awards <- fromEntities <$> (runDB $ selectList [] [])
-        --Does runFormPost really need all of the form parameters again?
-        ((result, widget), enctype) <- runFormPost $ awardForm awards (read $ unpack sdnts) (y, m)
+        let form = awardForm awards (read $ unpack sdnts) (y, m)
+        ((result, widget), enctype) <- runFormPost form
         case result of
           FormSuccess (FAward title sdnt blurb month year) -> do
-              let newStudentAwards = (Award title blurb (year,month)) : (studentAwards sdnt)
-              runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentAwards =. newStudentAwards]
-              defaultLayout $ do
-                praTheme
-                awardSubmitSuccess title (concatName $ studentName sdnt)
+            let newStudentAwards = (Award title blurb (year,month)) : (studentAwards sdnt)
+            runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentAwards =. newStudentAwards]
+            defaultLayout $ do
+              praTheme
+              awardSubmitSuccess title (concatName $ studentName sdnt)
+          _ -> do
+            protectedPage $ defaultLayout $ do
+              praTheme
+              awardFormWidget (widget, enctype)
+
+postAAwardR :: Handler Html
+postAAwardR = unsetExpiry >> getAAwardR
 
 getClubR :: Handler Html
 getClubR = do

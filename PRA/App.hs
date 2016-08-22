@@ -32,7 +32,7 @@ mkYesodData "PRA" [parseRoutes|
 
 --Constants
 openConnectionCount = 4 :: Int
-adminCookieTTL = 10 :: Int
+adminCookieTTL = 5 :: Int
 
 --Type synonyms
 type Name = (Text,Text)
