@@ -14,7 +14,9 @@ dbHomePage = [whamlet|
                         <h4> Add Student
                     <a href=@{AwardR}>
                         <h4> Awards
-                    <a href=@{SearchR}>
+                    <a href=@{StudentSR}>
                         <h4> Search Students
-                    <h4> Clubs Picker and Community Service Tracker (Coming Soon)
+                    <a href=@{ClubR}>
+                        <h4> Clubs Picker
+                    <h4> Community Service Tracker (Coming Soon)
 |]

@@ -19,6 +19,7 @@ mkYesodData "PRA" [parseRoutes|
 / HomeR GET
 /auth AuthR GET POST
 /auth/update AuthUR GET POST
+/student/ StudentSR GET
 /student/#Int StudentR GET
 /add AddR GET POST
 /search SearchR GET POST
@@ -36,8 +37,6 @@ adminCookieTTL = 5 :: Int
 
 --Type synonyms
 type Name = (Text,Text)
-
-type ClubMap = [(Text, (Int,Int))]
 
 type MonthYear = (Integer,Int)
 
@@ -62,7 +61,7 @@ Club
     name Text
     minSize Int
     maxSize Int
-    deriving Show Read Eq
+    deriving Show Read Ord Eq
 Peak
     name Text
     teacher Text
@@ -70,7 +69,7 @@ Peak
 Student
     name Name
     number Int
-    grade Int
+    gradYear Int
     peak Peak
     choices [Club]
     club Club Maybe
@@ -79,12 +78,9 @@ Student
     deriving Show Read
 |]
 
-type Result = ([(Text,[Student])], [Student])
+type ClubMap = ([(Club,[Student])], [Student])
 
---Deprecated--------------------------------------------------------------------------------------
-data ClubFStudent = ClubFStudent { sN  :: Text, sG  :: Int, sC1 :: Text, sC2 :: Text, sC3 :: Text}
---------------------------------------------------------------------------------------------------
---data ClubFStudent = ClubFStudent {student  :: Student, choices :: [Club]}
+data ClubFStudent = ClubFStudent {student  :: Student, num :: Int, choices :: [Club]}
 
 data FStudent = FStudent Text Text Int Int Peak
 

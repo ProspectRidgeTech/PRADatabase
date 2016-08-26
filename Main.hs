@@ -10,6 +10,7 @@ mkYesodDispatch "PRA" [parseRoutes|
 / HomeR GET
 /auth AuthR GET POST
 /auth/update AuthUR GET POST
+/student/ StudentSR GET
 /student/#Int StudentR GET
 /add AddR GET POST
 /search SearchR GET POST
@@ -165,7 +166,20 @@ getAAwardR = expireToken "search" getAAwardR $ do
 postAAwardR :: Handler Html
 postAAwardR = unsetExpiry >> getAAwardR
 
-getClubR :: Handler Html
+getStudentSR :: Handler Html
+getStudentSR = expireToken "search" getStudentSR $ do
+    search <- lookupSession "search"
+    case search of
+      Nothing -> do
+        setUltDestCurrent
+        redirect SearchR
+      Just sdnts -> do
+        setExpiry
+        protectedPage $ defaultLayout $ do
+          praTheme
+          allStudents (read $ unpack sdnts)
+
+{-getClubR :: Handler Html
 getClubR = do
     clubMap <- (clubsToMap . fromEntities) <$> (runDB $ selectList [] [])
     f <- generateFormPost (studentClubForm clubMap)
@@ -182,15 +196,51 @@ postClubR = do
             --Add DB update here
             defaultLayout $ do
                 praTheme
-                pracSubmitSuccess
+                pracSubmitSuccess-}
+
+getClubR :: Handler Html
+getClubR = expireToken "search" getAAwardR $ do
+    search <- lookupSession "search"
+    case search of
+      Nothing -> do
+        setUltDestCurrent
+        redirect SearchR
+      Just sdnts -> do
+        setExpiry
+        clubMap <- fromEntities <$> (runDB $ selectList [] [])
+        let form = studentClubForm (read $ unpack sdnts) clubMap
+        ((result, widget), enctype) <- runFormPost form
+        case result of
+          FormSuccess (ClubFStudent student num choices) -> do
+            if num /= studentNumber student
+              then do
+                setMessage $ toHtml ("Student ID Mismatch. Try Again." :: Text)
+                unsetExpiry
+                redirect ClubR
+              else do
+                runDB $ updateWhere [StudentNumber ==. (studentNumber student)] [StudentChoices =. choices]
+                sdnts <- fromEntities <$> (runDB $ selectList [] [])
+                clubs <- fromEntities <$> (runDB $ selectList [] [])
+                let clubMap = sortAll sdnts clubs
+                mapM_ (\(club,members) -> mapM_ (\sdnt -> runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Just club]) members) (fst clubMap)
+                mapM_ (\sdnt -> runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Nothing]) (snd clubMap)
+                defaultLayout $ do
+                  praTheme
+                  pracSubmitSuccess
+          _ -> do
+            defaultLayout $ do
+              praTheme
+              clubFormWidget (widget, enctype)
+
+postClubR :: Handler Html
+postClubR = unsetExpiry >> getClubR
 
 getCResultR :: Handler Html
 getCResultR = do
     sdnts <- fromEntities <$> (runDB $ selectList [] [])
-    clubMap <- (clubsToMap . fromEntities) <$> (runDB $ selectList [] [])
     protectedPage $ defaultLayout $ do
         praTheme
-        resultsPage sdnts clubMap
+        resultsPage sdnts
 
 main :: IO ()
 main = runStderrLoggingT $ withSqlitePool "SdntDB.sqlite3" openConnectionCount $ \pool -> liftIO $ do

@@ -9,7 +9,7 @@ newStudentForm peaks =
     <$> areq textField "First Name: " Nothing
     <*> areq textField "Last Name: " Nothing
     <*> areq intField "Student Number: " Nothing
-    <*> areq (selectFieldList grades) "Grade: " Nothing
+    <*> areq intField "Graduating Year: " Nothing
     <*> areq (selectFieldList $ zip (map showPeak peaks) peaks) "Peak: " Nothing
 
 pradbSubmitSuccess :: WidgetT PRA IO ()

@@ -13,7 +13,6 @@ executable          PRADatabase
                   , PRA.Page.Home
                   , PRA.Page.Auth
                   , PRA.Page.Club
-                  , PRA.Page.CResult
                   , PRA.Page.Add
                   , PRA.Page.Search
                   , PRA.Page.Award

@@ -4,19 +4,18 @@ module PRA.Utils
     , ClubFStudent(..)
     , Student(..)
     , ClubMap
-    , Result
+    , updateAL
+    , studentsToClubMap
     , setExpiry
     , unsetExpiry
     , expireToken
     , collapse
-    , clubsToMap
     , concatName
     , searchStudents
     , awardsToPairs
     , studentsToPairs
     , clubsToPairs
     , showPeak
-    , grades
     , fromEntities
     , toStudent
     , opLst
@@ -34,6 +33,7 @@ import Data.Tuple as Export (swap)
 import Data.Time as Export
 import Data.Char as Export
 import Yesod.Static as Export
+import Control.Monad as Export
 import Data.Time.Clock as Export
 import Data.Time.Calendar as Export
 import Data.Time.LocalTime as Export
@@ -48,6 +48,19 @@ import PRA.App
 import Yesod
 
 --Funtions
+updateAL al key val = case lookup key al of
+    Nothing -> al
+    Just v -> fst spl ++ [(key,val)] ++ drop 1 (snd spl)
+      where spl = span (/=(key,v)) al
+
+studentsToClubMap :: [Student] -> ClubMap
+studentsToClubMap =
+  foldl (\(cMap,unRes) sdnt -> case studentClub sdnt of
+                                Nothing -> (cMap,sdnt:unRes)
+                                Just club -> if club `elem` map fst cMap
+                                               then (updateAL cMap club (sdnt:(fromJust $ lookup club cMap)),unRes)
+                                               else ((club,[sdnt]):cMap,unRes)) ([],[])
+
 setExpiry :: Handler ()
 setExpiry = setSession "expiry" ""
 unsetExpiry :: Handler ()
@@ -73,24 +86,18 @@ searchStudents :: Text -> [Student] -> [Student]
 searchStudents q = filter (not . null . breakOnAll (T.toLower q) . T.toLower . concatName . studentName)
 
 toStudent :: FStudent -> Student
-toStudent (FStudent fname lname num grade peak) = Student (fname,lname) num grade peak [] Nothing [] 0
+toStudent (FStudent fname lname num gradYear peak) = Student (fname,lname) num gradYear peak [] Nothing [] 0
 
 fromEntities :: [Entity a] -> [a]
 fromEntities = map fromEntity
     where fromEntity (Entity _ x) = x
 
-clubsToMap :: [Club] -> ClubMap
-clubsToMap = map (\(Club n mn mx) -> (n,(mn,mx)))
-
-clubsToPairs :: ClubMap -> [(Text, Text)]
-clubsToPairs clubLst = [(x,x) | x <- map fst clubLst]
+clubsToPairs :: [Club] -> [(Text, Club)]
+clubsToPairs clubLst = [(clubName x,x) | x <- clubLst]
 
 --Make a show instance?
 showPeak :: Peak -> Text
 showPeak p = peakName p `append` " - " `append` peakTeacher p
-
-grades :: [(Text, Int)]
-grades = zip (map (pack . (++"th Grade") . show) [9..12]) [9..12]
 
 awardsToPairs :: [Awards] -> [(Text,Text)]
 awardsToPairs = map ((\x -> (x,x)) . awardsTitle)

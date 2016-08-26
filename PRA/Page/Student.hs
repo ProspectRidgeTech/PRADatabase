@@ -11,8 +11,8 @@ studentPage sdnt = do
             $if null sdnt
                 <h1>Student Not Found
             $else
-                $forall (Student name num grade peak _ club awards hours) <- sdnt
-                    <h1>#{concatName name}, #{grade}th
+                $forall (Student name num gradYear peak _ club awards hours) <- sdnt
+                    <h1>#{concatName name} - Class of #{gradYear}
                     <h4>#{show num}
                     <p><strong>Peak:</strong> #{showPeak peak}
                     $maybe c <- club
@@ -28,3 +28,13 @@ studentPage sdnt = do
                             <p><i>"#{blurb}"</i>
                     <p><strong>Service Hours:</strong> #{show hours}
 |]
+
+allStudents :: [Student] -> WidgetT PRA IO ()
+allStudents res = do
+    [whamlet|
+      <div .results>
+          <h1> Search results
+          $forall (Student name num gradYear _ _ _ _ _) <- res
+              <a href=@{StudentR num}>
+                  <p>#{concatName name} - #{gradYear}
+    |]
