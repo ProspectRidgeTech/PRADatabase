@@ -148,7 +148,6 @@ getAAwardR = expireToken "search" getAAwardR $ do
         redirect SearchR
       Just sdnts -> do
         setExpiry
-        setUltDestCurrent
         awards <- fromEntities <$> (runDB $ selectList [] [])
         let form = awardForm awards (read $ unpack sdnts) (y, m)
         ((result, widget), enctype) <- runFormPost form
@@ -176,7 +175,6 @@ getStudentSR = expireToken "search" getStudentSR $ do
         redirect SearchR
       Just sdnts -> do
         setExpiry
-        setUltDestCurrent
         protectedPage $ defaultLayout $ do
           praTheme
           allStudents (read $ unpack sdnts)
@@ -190,7 +188,6 @@ getClubR = expireToken "search" getAAwardR $ do
         redirect SearchR
       Just sdnts -> do
         setExpiry
-        setUltDestCurrent
         clubMap <- fromEntities <$> (runDB $ selectList [] [])
         let form = studentClubForm (read $ unpack sdnts) clubMap
         ((result, widget), enctype) <- runFormPost form
@@ -203,11 +200,6 @@ getClubR = expireToken "search" getAAwardR $ do
                 redirect ClubR
               else do
                 runDB $ updateWhere [StudentNumber ==. (studentNumber student)] [StudentChoices =. choices]
-                sdnts <- fromEntities <$> (runDB $ selectList [] [])
-                clubs <- fromEntities <$> (runDB $ selectList [] [])
-                let clubMap = sortAll sdnts clubs
-                mapM_ (\(club,members) -> mapM_ (\sdnt -> runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Just club]) members) (fst clubMap)
-                mapM_ (\sdnt -> runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Nothing]) (snd clubMap)
                 defaultLayout $ do
                   praTheme
                   pracSubmitSuccess
@@ -222,9 +214,20 @@ postClubR = unsetExpiry >> getClubR
 getCResultR :: Handler Html
 getCResultR = do
     sdnts <- fromEntities <$> (runDB $ selectList [] [])
-    protectedPage $ defaultLayout $ do
-        praTheme
-        resultsPage sdnts
+    hash <- fromEntities <$> (runDB $ selectList [DbColumn ==. "student"] [])
+    if (md5sum . pack . show $ sdnts) /= (dbHash . head $ hash)
+      then do
+        clubs <- fromEntities <$> (runDB $ selectList [] [])
+        let clubMap = sortAll sdnts clubs
+        runDB $ mapM_ (\(club,members) -> mapM_ (\sdnt -> updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Just club]) members) (fst clubMap)
+        runDB $ mapM_ (\sdnt -> updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Nothing]) (snd clubMap)
+        sdnts <- fromEntities <$> (runDB $ selectList [] [])
+        runDB $ updateWhere [DbColumn ==. "student"] [DbHash =. (md5sum . pack . show $ (sdnts :: [Student]))]
+        redirect CResultR
+      else do
+        protectedPage $ defaultLayout $ do
+          praTheme
+          resultsPage sdnts
 
 main :: IO ()
 main = runStderrLoggingT $ withSqlitePool "SdntDB.sqlite3" openConnectionCount $ \pool -> liftIO $ do

@@ -4,6 +4,7 @@ module PRA.Utils
     , ClubFStudent(..)
     , Student(..)
     , ClubMap
+    , md5sum
     , updateAL
     , studentsToClubMap
     , setExpiry
@@ -32,6 +33,7 @@ import Data.Text as Export (Text, pack, unpack, append, breakOnAll)
 import Data.Tuple as Export (swap)
 import Data.Time as Export
 import Data.Char as Export
+import Crypto.Hash as Export
 import Yesod.Static as Export
 import Control.Monad as Export
 import Data.Time.Clock as Export
@@ -44,10 +46,14 @@ import Control.Monad.Trans.Resource as Export (runResourceT)
 import Control.Monad.Logger as Export (runStderrLoggingT)
 
 import qualified Data.Text as T
+import qualified Data.ByteString.Char8 as BS
 import PRA.App
 import Yesod
 
 --Funtions
+md5sum :: Text -> Text
+md5sum = T.pack . map toUpper . show . (hash :: BS.ByteString -> Digest MD5) . BS.pack . T.unpack
+
 updateAL al key val = case lookup key al of
     Nothing -> al
     Just v -> fst spl ++ [(key,val)] ++ drop 1 (snd spl)

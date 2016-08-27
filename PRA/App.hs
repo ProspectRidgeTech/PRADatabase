@@ -46,10 +46,11 @@ data Award = Award {title :: Text, blurb :: Text, month :: MonthYear}
     deriving (Show, Read, Eq)
 derivePersistField "Award"
 
---Make admin pass an Admin ByteString hash rather than plain text.
---Possibly seperate out club choices into their own table. Along with nominations for awards.
---Restructure so that student contains only pertinent information. Just a club name rather than the Club datatype?
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
+Db
+    column Text
+    hash Text
+    deriving Show Read Eq
 Admin
     user Text
     pass Text
@@ -61,7 +62,7 @@ Club
     name Text
     minSize Int
     maxSize Int
-    deriving Show Read Ord Eq
+    deriving Show Read Eq
 Peak
     name Text
     teacher Text

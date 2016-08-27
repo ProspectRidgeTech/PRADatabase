@@ -20,16 +20,16 @@ placeStudents (x:xs) result@(clubMbrs, unRes)
       where chx = studentChoices x
             clubMLst = fromJust $ lookup (head chx) clubMbrs
 
-sortAll sdntLst clubMap = postSort clubMap $ placeStudents (seniorSort sdntLst) (zip clubMap (repeat []),[])
+sortAll sdntLst clubMap = postSort $ placeStudents (seniorSort sdntLst) (zip clubMap (repeat []),[])
 
-postSort :: [Club] -> ClubMap -> ClubMap
-postSort clubMap dat
+postSort :: ClubMap -> ClubMap
+postSort dat
   |not (null effectedSdnts) =
-      sortAll (seniorSort $ map dropChoice effectedSdnts ++ fltrOutLst effectedSdnts sdnts) clubMap
+      sortAll (seniorSort $ map dropChoice effectedSdnts ++ sdnts `fltrOutLst` effectedSdnts) (map fst clubDat)
   |otherwise = dat
       where clubDat = fst dat
             smallClubs = filter (\(club,mbrs) -> length mbrs < clubMinSize club) clubDat
-            sdnts = concatMap snd clubDat
+            sdnts = concatMap snd clubDat ++ snd dat
             effectedSdnts = concatMap snd smallClubs
-            fltrOutLst xs res = foldl (\ res x -> filter (/= x) res) res xs
+            fltrOutLst = foldl (\ res x -> filter (/= x) res)
             dropChoice sdnt = sdnt{studentChoices = drop 1 (studentChoices sdnt)}

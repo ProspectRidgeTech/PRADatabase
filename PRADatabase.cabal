@@ -32,6 +32,7 @@ executable          PRADatabase
                   , GADTs
   build-depends:    base
                   , transformers
+                  , cryptonite
                   , resourcet
                   , monad-logger
                   , bytestring

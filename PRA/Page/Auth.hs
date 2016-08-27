@@ -14,7 +14,7 @@ protectedPage expr = do
 
 authPageForm :: [Admin] -> Html -> MForm Handler (FormResult Text, Widget)
 authPageForm pass =
-    renderDivs $ areq (checkBool (`elem` map adminPass pass) ("Incorrect password" :: Text) passwordField) "Administrator password: " Nothing
+    renderDivs $ areq (checkBool ((`elem` map adminPass pass) . md5sum) ("Incorrect password" :: Text) passwordField) "Administrator password: " Nothing
 
 authPageFormWidget :: (ToWidget PRA w,ToMarkup e) => (w, e) -> WidgetT PRA IO ()
 authPageFormWidget (widget, enctype) = do
