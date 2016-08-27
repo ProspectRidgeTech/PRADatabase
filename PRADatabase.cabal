@@ -45,4 +45,4 @@ executable          PRADatabase
                   , text
                   , time
 
-  ghc-options:    -fwarn-tabs -threaded -O2 -rtsopts -with-rtsopts=-N
+  ghc-options:    -fwarn-tabs -threaded -optc-O3 -O2 -rtsopts -with-rtsopts=-N

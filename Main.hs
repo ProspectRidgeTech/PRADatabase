@@ -148,6 +148,7 @@ getAAwardR = expireToken "search" getAAwardR $ do
         redirect SearchR
       Just sdnts -> do
         setExpiry
+        setUltDestCurrent
         awards <- fromEntities <$> (runDB $ selectList [] [])
         let form = awardForm awards (read $ unpack sdnts) (y, m)
         ((result, widget), enctype) <- runFormPost form
@@ -175,28 +176,10 @@ getStudentSR = expireToken "search" getStudentSR $ do
         redirect SearchR
       Just sdnts -> do
         setExpiry
+        setUltDestCurrent
         protectedPage $ defaultLayout $ do
           praTheme
           allStudents (read $ unpack sdnts)
-
-{-getClubR :: Handler Html
-getClubR = do
-    clubMap <- (clubsToMap . fromEntities) <$> (runDB $ selectList [] [])
-    f <- generateFormPost (studentClubForm clubMap)
-    defaultLayout $ do
-        praTheme
-        clubFormWidget f
-
-postClubR :: Handler Html
-postClubR = do
-    clubMap <- (clubsToMap . fromEntities) <$> (runDB $ selectList [] [])
-    ((result, widget), enctype) <- runFormPost (studentClubForm clubMap)
-    case result of
-        FormSuccess clubFStudent -> do
-            --Add DB update here
-            defaultLayout $ do
-                praTheme
-                pracSubmitSuccess-}
 
 getClubR :: Handler Html
 getClubR = expireToken "search" getAAwardR $ do
@@ -207,6 +190,7 @@ getClubR = expireToken "search" getAAwardR $ do
         redirect SearchR
       Just sdnts -> do
         setExpiry
+        setUltDestCurrent
         clubMap <- fromEntities <$> (runDB $ selectList [] [])
         let form = studentClubForm (read $ unpack sdnts) clubMap
         ((result, widget), enctype) <- runFormPost form
