@@ -59,7 +59,7 @@ postAuthUR = do
     ((result, widget), enctype) <- runFormPost authUpdateForm
     case result of
         FormSuccess pass -> do
-            runDB $ updateWhere [AdminUser ==. "admin"] [AdminPass =. pass]
+            runDB $ updateWhere [AdminUser ==. "admin"] [AdminPass =. (md5sum pass)]
             defaultLayout $ do
                 praTheme
                 authUpdateSubmitSuccess
@@ -98,7 +98,7 @@ postAddR = do
 getSearchR :: Handler Html
 getSearchR = do
     f <- generateFormPost dbSearchForm
-    protectedPage $ defaultLayout $ do
+    defaultLayout $ do
         praTheme
         dbSearchFormWidget f
 
