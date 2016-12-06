@@ -12,11 +12,8 @@ dbHomePage = [whamlet|
                     <h1> Prospect Ridge Academy Student Database
                     <a href=@{AddR}>
                         <h4> Add Student
-                    <a href=@{AwardR}>
-                        <h4> Awards
                     <a href=@{StudentSR}>
                         <h4> Search Students
                     <a href=@{ClubR}>
                         <h4> Clubs Picker
-                    <h4> Community Service Tracker (Coming Soon)
 |]

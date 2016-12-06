@@ -3,14 +3,13 @@ import PRA.Utils
 import PRA.App
 import Yesod
 
-newStudentForm :: [Peak] -> Html -> MForm Handler (FormResult FStudent, Widget)
-newStudentForm peaks =
+newStudentForm :: Html -> MForm Handler (FormResult FStudent, Widget)
+newStudentForm =
     renderDivs $ FStudent
     <$> areq textField "First Name: " Nothing
     <*> areq textField "Last Name: " Nothing
     <*> areq intField "Student Number: " Nothing
     <*> areq intField "Graduating Year: " Nothing
-    <*> areq (selectFieldList $ zip (map showPeak peaks) peaks) "Peak: " Nothing
 
 pradbSubmitSuccess :: WidgetT PRA IO ()
 pradbSubmitSuccess = do
