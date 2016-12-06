@@ -15,7 +15,6 @@ executable          PRADatabase
                   , PRA.Page.Club
                   , PRA.Page.Add
                   , PRA.Page.Search
-                  , PRA.Page.Award
                   , PRA.Page.Student
   extensions:       EmptyDataDecls
                   , FlexibleContexts

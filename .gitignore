@@ -1,5 +1,5 @@
 stack.yaml
-SdntDB.sqlite3*
+SdntDB*
 client_session_key.aes
 server.log
 dist

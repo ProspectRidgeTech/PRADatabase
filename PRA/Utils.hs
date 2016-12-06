@@ -13,18 +13,10 @@ module PRA.Utils
     , collapse
     , concatName
     , searchStudents
-    , awardsToPairs
     , studentsToPairs
     , clubsToPairs
-    , showPeak
     , fromEntities
     , toStudent
-    , opLst
-    , getAward
-    , monthPairs
-    , monthToName
-    , toMonthYear
-    , monthlyAwards
     ) where
 import Data.IORef as Export
 import Text.Blaze as Export
@@ -36,9 +28,6 @@ import Data.Char as Export
 import Crypto.Hash as Export
 import Yesod.Static as Export
 import Control.Monad as Export
-import Data.Time.Clock as Export
-import Data.Time.Calendar as Export
-import Data.Time.LocalTime as Export
 import Database.Persist as Export
 import Database.Persist.TH as Export
 import Database.Persist.Sqlite as Export
@@ -92,7 +81,7 @@ searchStudents :: Text -> [Student] -> [Student]
 searchStudents q = filter (not . null . breakOnAll (T.toLower q) . T.toLower . concatName . studentName)
 
 toStudent :: FStudent -> Student
-toStudent (FStudent fname lname num gradYear peak) = Student (fname,lname) num gradYear peak [] Nothing [] 0
+toStudent (FStudent fname lname num gradYear) = Student (fname,lname) num gradYear [] Nothing
 
 fromEntities :: [Entity a] -> [a]
 fromEntities = map fromEntity
@@ -101,32 +90,5 @@ fromEntities = map fromEntity
 clubsToPairs :: [Club] -> [(Text, Club)]
 clubsToPairs clubLst = [(clubName x,x) | x <- clubLst]
 
---Make a show instance?
-showPeak :: Peak -> Text
-showPeak p = peakName p `append` " - " `append` peakTeacher p
-
-awardsToPairs :: [Awards] -> [(Text,Text)]
-awardsToPairs = map ((\x -> (x,x)) . awardsTitle)
-
 studentsToPairs :: [Student] -> [(Text,Student)]
 studentsToPairs sdnts = zip (map (concatName . studentName) sdnts) sdnts
-
-toMonthYear :: FMonth -> MonthYear
-toMonthYear (FMonth month year) = (year,month)
-
-monthlyAwards :: Text -> MonthYear -> [Student] -> [Student]
-monthlyAwards peak date sdnts = filter (\sdnt -> date `elem` map month (studentAwards sdnt)) peakStudents
-    where peakStudents = filter (\sdnt -> peakName (studentPeak sdnt) == peak) sdnts
-
---Add multi-blurb support. Randomly pick a blurb in the case of duplicate awards.
-getAward :: MonthYear -> [Award] -> Award
-getAward date = head . filter (\(Award _ _ d) -> d == date)
-
-monthPairs :: [(Text,Int)]
-monthPairs = zip ["January","February","March","April","May","June","July","August","September","October","November","December"] [1..12]
-
-monthToName :: Int -> Text
-monthToName n = fromJust $ lookup n (map swap monthPairs)
-
-opLst :: [(Text,Bool)]
-opLst = [("Encrypt",True),("Decrypt",False)]

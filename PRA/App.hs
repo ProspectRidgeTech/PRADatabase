@@ -23,9 +23,6 @@ mkYesodData "PRA" [parseRoutes|
 /student/#Int StudentR GET
 /add AddR GET POST
 /search SearchR GET POST
-/award AwardR GET
-/award/show ShowAR GET POST
-/award/add AAwardR GET POST
 /praClubs ClubR GET POST
 /praClubs/results CResultR GET
 /src R Static src
@@ -42,10 +39,6 @@ type MonthYear = (Integer,Int)
 
 --Data Types
 
-data Award = Award {title :: Text, blurb :: Text, month :: MonthYear}
-    deriving (Show, Read, Eq)
-derivePersistField "Award"
-
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Db
     column Text
@@ -55,27 +48,17 @@ Admin
     user Text
     pass Text
     deriving Show Read Eq
-Awards
-    title Text
-    deriving Show Read Eq
 Club
     name Text
     minSize Int
     maxSize Int
     deriving Show Read Eq
-Peak
-    name Text
-    teacher Text
-    deriving Show Read Eq
 Student
     name Name
     number Int
     gradYear Int
-    peak Peak
     choices [Club]
     club Club Maybe
-    awards [Award]
-    hours Int
     deriving Show Read
 |]
 
@@ -83,14 +66,10 @@ type ClubMap = ([(Club,[Student])], [Student])
 
 data ClubFStudent = ClubFStudent {student  :: Student, num :: Int, choices :: [Club]}
 
-data FStudent = FStudent Text Text Int Int Peak
-
-data FAward = FAward Text Student Text Int Integer
+data FStudent = FStudent Text Text Int Int
 
 --This is seriously stupid, get rid of it.
 data FSearch = FSearch Text
-
-data FMonth = FMonth Int Integer
 
 --Instances
 instance Yesod PRA where

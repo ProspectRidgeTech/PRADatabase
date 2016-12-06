@@ -14,9 +14,6 @@ mkYesodDispatch "PRA" [parseRoutes|
 /student/#Int StudentR GET
 /add AddR GET POST
 /search SearchR GET POST
-/award AwardR GET
-/award/show ShowAR GET POST
-/award/add AAwardR GET POST
 /praClubs ClubR GET POST
 /praClubs/results CResultR GET
 /src R Static src
@@ -64,11 +61,6 @@ postAuthUR = do
                 praTheme
                 authUpdateSubmitSuccess
 
-getAwardR :: Handler Html
-getAwardR = protectedPage $ defaultLayout $ do
-        praTheme
-        awardHomePage
-
 getStudentR :: Int -> Handler Html
 getStudentR sn = do
     sdnt <- fromEntities <$> (runDB $ selectList [StudentNumber ==. sn] [])
@@ -78,16 +70,14 @@ getStudentR sn = do
 
 getAddR :: Handler Html
 getAddR = do
-    peaks <- fromEntities <$> (runDB $ selectList [] [])
-    f <- generateFormPost $ newStudentForm peaks
+    f <- generateFormPost $ newStudentForm
     protectedPage $ defaultLayout $ do
         praTheme
         dbFormWidget f
 
 postAddR :: Handler Html
 postAddR = do
-    peaks <- fromEntities <$> (runDB $ selectList [] [])
-    ((result, widget), enctype) <- runFormPost $ newStudentForm peaks
+    ((result, widget), enctype) <- runFormPost $ newStudentForm
     case result of
         FormSuccess fStudent -> do
             runDB $ insert (toStudent fStudent)
@@ -111,61 +101,6 @@ postSearchR = do
             setSession "search" (pack . show $ searchStudents query sdnts)
             redirectUltDest HomeR
 
-getShowAR :: Handler Html
-getShowAR = do
-    now <- liftIO getCurrentTime
-    timezone <- liftIO getCurrentTimeZone
-    let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
-    f <- generateFormPost $ showAwardsForm (y, m)
-    protectedPage $ defaultLayout $ do
-        praTheme
-        showAwardsFormWidget f
-
-postShowAR :: Handler Html
-postShowAR = do
-    now <- liftIO getCurrentTime
-    timezone <- liftIO getCurrentTimeZone
-    let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
-    sdnts <- fromEntities <$> (runDB $ selectList [] [])
-    peaks <- fromEntities <$> (runDB $ selectList [] [])
-    --Does runFormPost really need all of the form parameters again?
-    ((result, widget), enctype) <- runFormPost $ showAwardsForm (y, m)
-    case result of
-        FormSuccess (FMonth month year) -> do
-            defaultLayout $ do
-                praTheme
-                showAwardsSubmitSuccess peaks sdnts (year,month)
-
-getAAwardR :: Handler Html
-getAAwardR = expireToken "search" getAAwardR $ do
-    now <- liftIO getCurrentTime
-    timezone <- liftIO getCurrentTimeZone
-    let (y, m, _) = toGregorian $ localDay $ utcToLocalTime timezone now
-    search <- lookupSession "search"
-    case search of
-      Nothing -> do
-        setUltDestCurrent
-        redirect SearchR
-      Just sdnts -> do
-        setExpiry
-        awards <- fromEntities <$> (runDB $ selectList [] [])
-        let form = awardForm awards (read $ unpack sdnts) (y, m)
-        ((result, widget), enctype) <- runFormPost form
-        case result of
-          FormSuccess (FAward title sdnt blurb month year) -> do
-            let newStudentAwards = (Award title blurb (year,month)) : (studentAwards sdnt)
-            runDB $ updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentAwards =. newStudentAwards]
-            defaultLayout $ do
-              praTheme
-              awardSubmitSuccess title (concatName $ studentName sdnt)
-          _ -> do
-            protectedPage $ defaultLayout $ do
-              praTheme
-              awardFormWidget (widget, enctype)
-
-postAAwardR :: Handler Html
-postAAwardR = unsetExpiry >> getAAwardR
-
 getStudentSR :: Handler Html
 getStudentSR = expireToken "search" getStudentSR $ do
     search <- lookupSession "search"
@@ -180,7 +115,7 @@ getStudentSR = expireToken "search" getStudentSR $ do
           allStudents (read $ unpack sdnts)
 
 getClubR :: Handler Html
-getClubR = expireToken "search" getAAwardR $ do
+getClubR = expireToken "search" getClubR $ do
     search <- lookupSession "search"
     case search of
       Nothing -> do
