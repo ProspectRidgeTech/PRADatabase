@@ -38,6 +38,11 @@ praTheme = do
                     padding: 10px;
                     p, label {
                         font-size: 95%;
+                       
+                    }
+                    .supinfo {
+                        line-height: 50%;
+                        font-size: 75%;
                     }
                 }
                 .formbox {
@@ -51,6 +56,7 @@ praTheme = do
                         color: darkred;
                         line-height: 50%;
                     }
+                    
                     textarea {
                         resize: none;
                         height: 5em;

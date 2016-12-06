@@ -26,7 +26,6 @@ module PRA.Utils
     , toMonthYear
     , monthlyAwards
     ) where
-import Data.IORef as Export
 import Text.Blaze as Export
 import Data.Maybe as Export (fromJust)
 import Data.Text as Export (Text, pack, unpack, append, breakOnAll)

@@ -1,4 +1,5 @@
 module PRA.Page.Club where
+import Data.List
 import PRA.Utils
 import PRA.Logic
 import PRA.App
@@ -55,6 +56,7 @@ resultsPage sdnts = do
             $if null unresolved
             $else
                 <h2> Unresolved:
-                $forall ((ufn,uln), ug) <- zip (map studentName unresolved) (map studentGradYear unresolved)
+                $forall ((ufn,uln), ug, uc) <- zip3 (map studentName unresolved) (map studentGradYear unresolved) (map studentChoices unresolved)
                     <p> #{ufn} #{uln} - #{ug}
+                    <p class="supinfo">(#{pack $ intercalate ", " $ map (unpack . clubName) uc})
 |]
