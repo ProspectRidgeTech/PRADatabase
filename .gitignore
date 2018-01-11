@@ -1,5 +1,6 @@
 stack.yaml
 SdntDB*
+roster.csv
 client_session_key.aes
 server.log
 dist

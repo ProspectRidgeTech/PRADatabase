@@ -17,6 +17,8 @@ module PRA.Utils
     , clubsToPairs
     , fromEntities
     , toStudent
+    , readCSV
+    , buildName
     ) where
 import Text.Blaze as Export
 import Data.Maybe as Export (fromJust)
@@ -33,14 +35,26 @@ import Database.Persist.Sqlite as Export
 import Control.Monad.Trans.Resource as Export (runResourceT)
 import Control.Monad.Logger as Export (runStderrLoggingT)
 
-import qualified Data.Text as T
+import Data.Csv (decodeByName, runParser, Parser, NamedRecord, (.:))
 import qualified Data.ByteString.Char8 as BS
+import qualified Data.ByteString.Lazy as BL
+import qualified Data.Vector as V
+import qualified Data.Text as T
+import Data.Either (fromRight)
+import Yesod hiding ((.:))
 import PRA.App
-import Yesod
 
 --Funtions
 md5sum :: Text -> Text
 md5sum = T.pack . map toUpper . show . (hash :: BS.ByteString -> Digest MD5) . BS.pack . T.unpack
+
+readCSV :: BL.ByteString -> [Student]
+readCSV csv = case decodeByName csv of
+    Left err -> error $ "ERROR WHILE DECODING CSV: " ++ err
+    Right (_, v) -> V.toList v
+
+buildName :: NamedRecord -> Name
+buildName r = (fromRight "" . runParser $ r .: "student.firstName", fromRight "" . runParser $ r .: "student.lastName")
 
 updateAL al key val = case lookup key al of
     Nothing -> al

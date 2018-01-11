@@ -1,4 +1,5 @@
 module Main where
+import qualified Data.ByteString.Lazy as BL
 import PRA.Logic
 import PRA.Utils
 import PRA.Page
@@ -71,6 +72,8 @@ getStudentR sn = do
 getAddR :: Handler Html
 getAddR = do
     f <- generateFormPost $ newStudentForm
+    -- csvData <- liftIO $ BL.readFile "roster.csv"
+    -- runDB $ mapM_ insert (readCSV csvData)
     protectedPage $ defaultLayout $ do
         praTheme
         dbFormWidget f
@@ -168,4 +171,4 @@ main :: IO ()
 main = runStderrLoggingT $ withSqlitePool "SdntDB.sqlite3" openConnectionCount $ \pool -> liftIO $ do
     runResourceT $ runSqlPool (runMigrationSilent migrateAll) pool
     res <- static "Resources/"
-    warp 8080 PRA {connPool = pool, src = res}
+    warp 4040 PRA {connPool = pool, src = res}

@@ -30,6 +30,8 @@ executable          PRADatabase
                   , ViewPatterns
                   , GADTs
   build-depends:    base
+                  , cassava
+                  , vector
                   , transformers
                   , cryptonite
                   , resourcet

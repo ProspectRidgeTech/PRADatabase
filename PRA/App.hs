@@ -4,7 +4,9 @@ import Database.Persist.TH
 import Database.Persist.Sqlite
 import Data.Text (Text)
 import Yesod.Static
-import Yesod
+import Data.Either
+import Data.Csv ((.:), FromNamedRecord, parseNamedRecord, runParser)
+import Yesod hiding ((.:))
 
 --Add a search page that returns a session message that is a list of students.
 --Add club choosing page that uses session message to display relevent students in a combobox. If results are empty, set a message and redirect to the search page.
@@ -86,3 +88,7 @@ instance YesodPersist PRA where
     runDB action = do
         PRA {..} <- getYesod
         runSqlPool action connPool
+
+instance FromNamedRecord Student where
+    parseNamedRecord r = Student (buildName r) <$> (r .: "student.studentNumber") <*> (r .: "student.grade") <*> pure [] <*> pure Nothing
+        where buildName r = (fromRight "" . runParser $ r .: "student.firstName", fromRight "" . runParser $ r .: "student.lastName")
