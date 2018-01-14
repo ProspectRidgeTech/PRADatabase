@@ -18,7 +18,7 @@ module PRA.Utils
     , fromEntities
     , toStudent
     , readCSV
-    , buildName
+    , writeCSV
     ) where
 import Text.Blaze as Export
 import Data.Maybe as Export (fromJust)
@@ -35,7 +35,7 @@ import Database.Persist.Sqlite as Export
 import Control.Monad.Trans.Resource as Export (runResourceT)
 import Control.Monad.Logger as Export (runStderrLoggingT)
 
-import Data.Csv (decodeByName, runParser, Parser, NamedRecord, (.:))
+import Data.Csv (decodeByName, encodeByName, runParser, Parser, NamedRecord, (.:))
 import qualified Data.ByteString.Char8 as BS
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Vector as V
@@ -53,8 +53,8 @@ readCSV csv = case decodeByName csv of
     Left err -> error $ "ERROR WHILE DECODING CSV: " ++ err
     Right (_, v) -> V.toList v
 
-buildName :: NamedRecord -> Name
-buildName r = (fromRight "" . runParser $ r .: "student.firstName", fromRight "" . runParser $ r .: "student.lastName")
+writeCSV :: [Student] -> BL.ByteString
+writeCSV = encodeByName (V.fromList ["student.firstName", "student.lastName", "student.studentNumber", "student.grade", "student.club"])
 
 updateAL al key val = case lookup key al of
     Nothing -> al

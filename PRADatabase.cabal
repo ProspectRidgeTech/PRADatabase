@@ -18,6 +18,7 @@ executable          PRADatabase
                   , PRA.Page.Student
   extensions:       EmptyDataDecls
                   , FlexibleContexts
+                  , FlexibleInstances
                   , FunctionalDependencies
                   , GeneralizedNewtypeDeriving
                   , MultiParamTypeClasses

@@ -5,8 +5,10 @@ import Database.Persist.Sqlite
 import Data.Text (Text)
 import Yesod.Static
 import Data.Either
-import Data.Csv ((.:), FromNamedRecord, parseNamedRecord, runParser)
-import Yesod hiding ((.:))
+import Data.Csv ((.:), (.=))
+import qualified Data.Csv as Cassava
+import Yesod hiding ((.:), (.=))
+import Data.Text.Encoding
 
 --Add a search page that returns a session message that is a list of students.
 --Add club choosing page that uses session message to display relevent students in a combobox. If results are empty, set a message and redirect to the search page.
@@ -15,7 +17,7 @@ import Yesod hiding ((.:))
 data PRA = PRA {src :: Static, connPool :: ConnectionPool}
 
 --Routing
-staticFiles "Resources/"
+staticFiles "Static/"
 
 mkYesodData "PRA" [parseRoutes|
 / HomeR GET
@@ -89,6 +91,18 @@ instance YesodPersist PRA where
         PRA {..} <- getYesod
         runSqlPool action connPool
 
-instance FromNamedRecord Student where
-    parseNamedRecord r = Student (buildName r) <$> (r .: "student.studentNumber") <*> (r .: "student.grade") <*> pure [] <*> pure Nothing
-        where buildName r = (fromRight "" . runParser $ r .: "student.firstName", fromRight "" . runParser $ r .: "student.lastName")
+instance Cassava.FromNamedRecord Student where
+    parseNamedRecord r = Student name <$> (r .: "student.studentNumber") <*> (r .: "student.grade") <*> pure [] <*> pure Nothing
+        where name = (fromRight "" . Cassava.runParser $ r .: "student.firstName", fromRight "" . Cassava.runParser $ r .: "student.lastName")
+
+instance Cassava.ToNamedRecord Student where
+    toNamedRecord Student{..} = Cassava.namedRecord [
+      "student.firstName" .= fst studentName,
+      "student.lastName" .= snd studentName,
+      "student.studentNumber" .= studentNumber,
+      "student.grade" .= studentGradYear,
+      "student.club" .= studentClub
+      ]
+
+instance Cassava.ToField Club where
+    toField = encodeUtf8 . clubName

@@ -161,6 +161,7 @@ getCResultR = do
         runDB $ mapM_ (\sdnt -> updateWhere [StudentNumber ==. (studentNumber sdnt)] [StudentClub =. Nothing]) (snd clubMap)
         sdnts <- fromEntities <$> (runDB $ selectList [] [])
         runDB $ updateWhere [DbColumn ==. "student"] [DbHash =. (md5sum . pack . show $ (sdnts :: [Student]))]
+        liftIO $ BL.writeFile "Static/clubs.csv" (writeCSV sdnts)
         redirect CResultR
       else do
         protectedPage $ defaultLayout $ do
@@ -170,5 +171,5 @@ getCResultR = do
 main :: IO ()
 main = runStderrLoggingT $ withSqlitePool "SdntDB.sqlite3" openConnectionCount $ \pool -> liftIO $ do
     runResourceT $ runSqlPool (runMigrationSilent migrateAll) pool
-    res <- static "Resources/"
+    res <- static "Static/"
     warp 4040 PRA {connPool = pool, src = res}
